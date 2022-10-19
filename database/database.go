@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
-
-var Connector *gorm.DB
 
 // DB Config
 type Config struct {
@@ -18,17 +16,13 @@ type Config struct {
 	DB         string
 }
 
-var GetConnectionString = func(config Config) string {
+func Connect(config Config) (dbConn *gorm.DB, err error) {
 	connString := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&multiStatements=true", config.User, config.Password, config.ServerName, config.DB)
-	return connString
-}
-
-func Connect(connString string) (err error) {
-	Connector, err = gorm.Open("mysql", connString)
+	dbConn, err = gorm.Open(mysql.Open(connString), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err.Error())
-		return err
+		return nil, err
 	}
 	log.Println("DB Connected")
-	return nil
+	return dbConn, nil
 }
