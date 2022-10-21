@@ -40,3 +40,41 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Redirect success")
 	}
 }
+
+func GetURL(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var urls []entity.URLshortener
+
+	if err := database.Connector.Find(&urls).Error; err != nil {
+		log.Fatalln(err.Error())
+	}
+	json.NewEncoder(w).Encode(urls)
+}
+
+func GetURLByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	ID := params["id"]
+	var url entity.URLshortener
+
+	if err := database.Connector.Find(&url, ID).Error; err != nil {
+		log.Fatalln(err.Error())
+	}
+	json.NewEncoder(w).Encode(url)
+}
+
+func GetURLByUniqueCode(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	UniqueCode := params["uniqueCode"]
+	var url entity.URLshortener
+
+	if err := database.Connector.First(&url, "unique_code = ?", UniqueCode).Error; err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	json.NewEncoder(w).Encode(url)
+}
