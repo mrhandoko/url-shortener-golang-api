@@ -5,35 +5,37 @@ import (
 	"net/http"
 	"url-shortener-golang-api/database"
 	"url-shortener-golang-api/handler"
+	"url-shortener-golang-api/repository/url"
+	"url-shortener-golang-api/service"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Init DB Connection
-	config := database.Config{
+	dbConfig := database.Config{
 		ServerName: "localhost:3306",
 		User:       "root",
 		Password:   "Ratna123",
 		DB:         "urlshortener",
 	}
 
-	connString := database.GetConnectionString(config)
-	if err := database.Connect(connString); err != nil {
+	db, err := database.Connect(dbConfig)
+	if err != nil {
 		log.Fatalln(err.Error())
-		panic(err.Error())
 	}
 
+	repo := url.NewRepo(db)
+	service := service.NewService(repo)
+	handler := handler.NewHandler(service)
+
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/api/url/create", handler.GenerateURL)
-	router.HandleFunc("/{uniqueCode}", handler.RedirectURL)
-	router.HandleFunc("/api/urls", handler.GetURL)
+	router.HandleFunc("/api/url/create", handler.GenerateURL).Methods("POST")
+	router.HandleFunc("/{id}", handler.RedirectURL).Methods("GET")
+	router.HandleFunc("/api/urls", handler.GetURLData).Methods("GET")
 	router.HandleFunc("/api/url/{id}", handler.GetURLByID).Methods("GET")
-	router.HandleFunc("/api/url/unique/{uniqueCode}", handler.GetURLByUniqueCode).Methods("GET")
 	router.HandleFunc("/api/url/{id}", handler.UpdateURLByID).Methods("PUT")
-	router.HandleFunc("/api/url/unique/{uniqueCode}", handler.UpdateURLByUniqueCode).Methods("PUT")
 	router.HandleFunc("/api/url/{id}", handler.DeleteURLByID).Methods("DELETE")
-	router.HandleFunc("/api/url/unique/{uniqueCode}", handler.DeleteURLByID).Methods("DELETE")
 
 	// Start server
 	log.Println("Starting http server on port 8090")
