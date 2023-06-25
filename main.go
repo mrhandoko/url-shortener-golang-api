@@ -25,12 +25,12 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	repo := url.NewRepo(db)
-	service := service.NewService(repo)
+	repository := url.NewRepo(db)
+	service := service.NewService(repository)
 	handler := handler.NewHandler(service)
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/api/url/create", handler.GenerateURL).Methods("POST")
+	router.HandleFunc("/api/urls/create", handler.GenerateURL).Methods("POST")
 	router.HandleFunc("/{id}", handler.RedirectURL).Methods("GET")
 	router.HandleFunc("/api/urls", handler.GetURLData).Methods("GET")
 	router.HandleFunc("/api/url/{id}", handler.GetURLByID).Methods("GET")
